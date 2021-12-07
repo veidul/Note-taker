@@ -1,37 +1,38 @@
-const fs = require('fs');
-var path = require('path');
-const dbPath = path.join(__dirname, "../db/db.json");
+const router = require('express').Router();
+const fs = require('fs')
+const path = require('path')
+const dbPath = path.join(__dirname, '../db/db.json')
 const { v4: uuidv4 } = require('uuid');
+const notes = JSON.parse(fs.readFileSync("./db/db.json"))
+// const util = require('util')
+// const readFileAsync = util.promisify(fs.readFile);
+// const writeFileAsync = util.promisify(fs.writeFile);
+// console.log(notes);
+router.get('/notes', (req, res) => {
+    try{
+        const notes = fs.readFileSync(dbPath, 'utf8');
+        let notesJSON = JSON.parse(notes)
+        res.json(notesJSON)
+    }catch(err){
+        console.log("error while reading file ", err)
+    }
 
-module.exports = function(app) {
-    app.get('/api/notes', (req,res) => {
-        fs.readFile(dbPath, 'utf8', (err, data)=>{
-            if (err) throw err;
-            console.log(data);
-            res.json(data)
-        })
-    })
-}
+})
 
-app.post("api/notes", (req,res) => {
-    fs.readFile(dbPath, 'utf8', (err, data)=>{
-        if(err) throw err;
-        let notesList;
-        if (data) {
-            notesList = JSON.parse(data);
-        }
+router.post('/notes', (req, res) => {
+    try {
+        const data = fs.readFileSync(dbPath, 'utf8');
+        const noteList = JSON.parse(data) || [];
+
+
         let newNote = req.body;
         newNote.id = uuidv4();
-        if (notesList) {
-            notesList.push(newNote);
-        }
-        else {
-            notesList = [newNote]
-        }
-        fs.writeFile(dbPath, JSON.stringify(notesList), (err,data) => {
-            if (err) throw err;
-            console.log('Success you have created a new note! ID: ' +newNote.id);
-            res.json(newNote)
-        })
-    })
+        noteList.push(newNote);
+        fs.writeFileSync(dbPath, JSON.stringify(noteList))
+        res.json(noteList);
+    } catch (err) {
+        console.log("ERR", err)
+        res.json("failed")
+    }
 })
+module.exports = router
