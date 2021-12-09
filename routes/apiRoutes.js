@@ -9,11 +9,11 @@ const notes = JSON.parse(fs.readFileSync("./db/db.json"))
 // const writeFileAsync = util.promisify(fs.writeFile);
 // console.log(notes);
 router.get('/notes', (req, res) => {
-    try{
+    try {
         const notes = fs.readFileSync(dbPath, 'utf8');
         let notesJSON = JSON.parse(notes)
         res.json(notesJSON)
-    }catch(err){
+    } catch (err) {
         console.log("error while reading file ", err)
     }
 
@@ -35,4 +35,21 @@ router.post('/notes', (req, res) => {
         res.json("failed")
     }
 })
-module.exports = router
+
+router.delete('/notes/:id', (req, res) => {
+    try{
+    let data = fs.readFileSync(dbPath, 'utf8');
+    const noteList = JSON.parse(data);
+    let noteID = req.params.id;
+    let deleteNote= notes.findIndex((note) => note.id === noteID)
+        noteList.splice(deleteNote,1);
+        fs.writeFileSync(dbPath, JSON.stringify(noteList))
+        res.json(noteList)}
+        catch (err) {
+            console.log('error deleting', err)
+            res.json('failed')
+
+        }
+    })
+
+    module.exports = router
